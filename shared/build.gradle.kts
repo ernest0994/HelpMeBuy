@@ -4,6 +4,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidLibrary)
+    alias(libs.plugins.ktor)
 }
 
 kotlin {
@@ -23,6 +24,10 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             // put your Multiplatform dependencies here
+            implementation(libs.ktor.clientCore)
+        }
+        androidMain.dependencies {
+            implementation(libs.androidx.room.ktx)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
