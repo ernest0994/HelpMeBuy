@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.ktor)
+    alias(libs.plugins.ksp)
 }
 
 kotlin {
@@ -27,6 +28,7 @@ kotlin {
             implementation(libs.ktor.clientCore)
         }
         androidMain.dependencies {
+            implementation(libs.androidx.room.runtime)
             implementation(libs.androidx.room.ktx)
         }
         commonTest.dependencies {
@@ -45,4 +47,12 @@ android {
     defaultConfig {
         minSdk = libs.versions.android.minSdk.get().toInt()
     }
+}
+
+dependencies {
+    add("kspAndroid", libs.androidx.room.compiler)
+}
+
+ksp {
+    arg("room.schemaLocation", file("schemas").path)
 }
