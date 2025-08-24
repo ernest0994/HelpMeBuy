@@ -19,3 +19,8 @@ captures
 
 # LocalStack runtime data
 localstack/data/
+
+# Kafka and Zookeeper runtime data
+kafka/data/
+zookeeper/data/
+zookeeper/log/

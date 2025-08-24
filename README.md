@@ -166,6 +166,86 @@ docker-compose down
   ```bash
   docker exec helpmebuy-localstack pip install awscli-local
   ```
+## Kafka Setup
+
+Kafka is used for real-time list sharing (HMB-18), enabling updates (e.g., adding "milk" to a shared list) to be pushed to multiple clients with low latency. Zookeeper coordinates Kafka’s brokers, topics, and consumer groups, ensuring reliable delivery.
+
+**Services Provisioned**:
+- Kafka broker: `helpmebuy-kafka` (port 9092) with topic `list-updates`.
+- Zookeeper: `helpmebuy-zookeeper` (port 2181) for coordination.
+
+**Prerequisites**:
+- Docker Desktop (free, installed for HMB-1).
+
+**Start Kafka and Zookeeper**:
+1. Ensure `docker-compose.yml` is in project root (includes `kafka` and `zookeeper` services).
+2. Create data directories:
+   ```bash
+   mkdir -p kafka/data zookeeper/data zookeeper/log
+   ```
+3. Start:
+   ```bash
+   docker-compose up -d
+   ```
+
+**Verify**:
+1. Check container status:
+   ```bash
+   docker ps
+   ```
+    - Expect: `helpmebuy-kafka` (port 9092), `helpmebuy-zookeeper` (port 2181).
+2. Check logs:
+   ```bash
+   docker-compose logs kafka zookeeper
+   ```
+    - Expect:
+        - Zookeeper: `binding to port 0.0.0.0/0.0.0.0:2181`.
+        - Kafka: `Kafka Server started`, `Connected to Zookeeper at zookeeper:2181`.
+3. Create topic:
+   ```bash
+   docker-compose exec kafka kafka-topics --create --topic list-updates --bootstrap-server localhost:9092 --partitions 1 --replication-factor 1
+   ```
+    - Expect: `Created topic list-updates`.
+4. Verify topic:
+   ```bash
+   docker-compose exec kafka kafka-topics --list --bootstrap-server localhost:9092
+   ```
+    - Expect: `list-updates`.
+5. Test producer/consumer:
+    - Producer (one terminal):
+      ```bash
+      docker-compose exec kafka kafka-console-producer --topic list-updates --bootstrap-server localhost:9092
+      ```
+        - Type: `{"listId": "1", "item": "milk"}` (press Enter), Ctrl+C to exit.
+    - Consumer (another terminal):
+      ```bash
+      docker-compose exec kafka kafka-console-consumer --topic list-updates --bootstrap-server localhost:9092 --from-beginning
+      ```
+        - Expect: `{"listId": "1", "item": "milk"}`.
+6. Test persistence:
+    - Shut down:
+      ```bash
+      docker-compose down
+      ```
+    - Restart:
+      ```bash
+      docker-compose up -d
+      ```
+    - Verify topic:
+      ```bash
+      docker-compose exec kafka kafka-topics --list --bootstrap-server localhost:9092
+      ```
+        - Expect: `list-updates`.
+    - Check messages:
+      ```bash
+      docker-compose exec kafka kafka-console-consumer --topic list-updates --bootstrap-server localhost:9092 --from-beginning
+      ```
+        - Expect: `{"listId": "1", "item": "milk"}`.
+
+**Stop Kafka and Zookeeper**:
+```bash
+docker-compose down
+```
 
 ## Development Workflow
 - **IDE**: IntelliJ IDEA (Community or All Products Pack).
