@@ -252,14 +252,41 @@ Keycloak manages authentication and user setup, with Mailpit handling email test
 
 **Keycloak**:
 - **Configuration**:
+    - Run Keycloak via Docker: docker-compose up -d (port 8081 to avoid Ktor conflicts, per docker-compose.yml).
     - Access admin console at [http://localhost:8081](http://localhost:8081), log in with `admin`/`admin` (master realm).
     - Switch to `HelpMeBuyRealm` via realm selector, create new realm if not present.
-    - Add client: Go to Clients > Create, set Client ID `HelpMeBuyApp`, type OpenID Connect, enable confidential and service account, save, note Client Secret.
+    - Add client: Go to Clients > Create, set Client ID `HelpMeBuyApp`, type OpenID Connect, enable confidential, Direct Access Grants Enabled: On and service account, save, note Client Secret.
     - Enable settings: In Realm settings > Login, turn on "User registration", "Email as username", "Verify Email".
     - Set email: In Email tab, configure Host `mailpit`, Port `1025`, From `no-reply@helpmebuy.local`, SSL OFF, test connection (requires admin email `admin@helpmebuy.local` set in master realm > Users > `admin`).
-- **Verification**:
+    - Add roles: Realm Roles > Create > Names: `user`, `admin`.
+    - Add group: Groups > New > Name: `List_1_Group`.
+    - Configure test user: Users > Add User > Email: `test@helpmebuy.local`, Email Verified: On, Enabled: On. Set Password: `testpass` (Temporary: Off). Assign `user` role (Role Mappings) and `List_1_Group` (Groups).
+    - Create client scope: Client Scopes > Create > Name: `groups`, Type: Default. Add mappers:
+    - - **Group Membership**: Name: `groups`, Token Claim Name: `groups`, Add to ID/Access/UserInfo: On, Full Group Path: Off.
+    - - **User Realm Role**: Name: `roles`, Token Claim Name: `roles`, Add to ID/Access/UserInfo: On.
+    - Assign scope: Clients > `HelpMeBuyApp` > Client Scopes > Add `groups` to Assigned Default Client Scopes.
+- **Client config Verification**:
     - Test SMTP by sending a test email from Email tab, confirm receipt in Mailpit.
     - Request token: Use POST `http://localhost:8081/realms/HelpMeBuyRealm/protocol/openid-connect/token` with `client_id=HelpMeBuyApp`, `client_secret=<your-secret>`, `grant_type=client_credentials` to get a JWT.
+- **User config Verification**:
+    - Test JWT: Use cURL or IntelliJ HTTP Client:
+    ```bash
+    curl --location 'http://localhost:8081/realms/HelpMeBuyRealm/protocol/openid-connect/token' \
+    --header 'Content-Type: application/x-www-form-urlencoded' \
+    --data-urlencode 'client_id=HelpMeBuyApp' \
+    --data-urlencode 'client_secret=<your-client-secret>' \
+    --data-urlencode 'grant_type=password' \
+    --data-urlencode 'username=test@helpmebuy.local' \
+    --data-urlencode 'password=testpass'
+    ```
+    - Decode `access_token` at jwt.io. Expect: `"groups": ["List_1_Group"]`, `"roles": ["user", ...]`.
+    - Test `/userinfo`:
+    ```bash
+    curl --location 'http://localhost:8081/realms/HelpMeBuyRealm/protocol/openid-connect/userinfo' \
+    --header 'Authorization: Bearer <access_token>' 
+    ```
+    Expect: JSON with `groups` and `roles`.
+                
 - **Notes**: Email verification for users (e.g., `test@helpmebuy.local`) awaits app registration form, deferred to future tasks.
 
 **Mailpit**:
