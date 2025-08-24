@@ -27,3 +27,6 @@ zookeeper/log/
 
 # Keycloack runtime data
 keycloak/data/
+
+# mailpit runtime data
+mailpit/data/

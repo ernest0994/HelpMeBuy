@@ -8,6 +8,7 @@ services:
       - SERVICES=s3,dynamodb
       - AWS_DEFAULT_REGION=us-east-1
       - DEBUG=1
+      - TZ=America/New_York
     volumes:
       # Init scripts run when LocalStack is READY
       - ./localstack/init:/etc/localstack/init/ready.d
@@ -36,6 +37,7 @@ services:
       - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT
       - KAFKA_INTER_BROKER_LISTENER_NAME=PLAINTEXT
       - KAFKA_NUM_PARTITIONS=1
+      - TZ=America/New_York
     depends_on:
       - zookeeper
     volumes:
@@ -50,6 +52,7 @@ services:
       - ZOOKEEPER_CLIENT_PORT=2181
       - ZOOKEEPER_TICK_TIME=2000
       - ZOOKEEPER_SERVER_ID=1
+      - TZ=America/New_York
     volumes:
       - ./zookeeper/data:/var/lib/zookeeper/data
       - ./zookeeper/log:/var/lib/zookeeper/log
@@ -67,6 +70,7 @@ services:
       - KC_HTTP_MANAGEMENT_ENABLED=true
       - KC_HTTP_MANAGEMENT_PORT=9000
       - KC_HEALTH_ENABLED=true
+      - TZ=America/New_York
     command: start-dev
     volumes:
       - ./keycloak/data:/opt/keycloak/data
@@ -76,6 +80,21 @@ services:
       timeout: 5s
       retries: 60
       start_period: 45s
+  mailpit:
+    image: axllent/mailpit
+    container_name: helpmebuy-mailpit
+    restart: unless-stopped
+    volumes:
+      - ./mailpit/data:/data
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+    environment:
+      - MP_MAX_MESSAGES=5000
+      - MP_DATABASE=/data/mailpit.db
+      - MP_SMTP_AUTH_ACCEPT_ANY=1
+      - MP_SMTP_AUTH_ALLOW_INSECURE=1
+      - TZ=America/New_York
 volumes:
   kafka_secrets:
   zookeeper_secrets:
