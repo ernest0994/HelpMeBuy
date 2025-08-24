@@ -24,3 +24,6 @@ localstack/data/
 kafka/data/
 zookeeper/data/
 zookeeper/log/
+
+# Keycloack runtime data
+keycloak/data/
