@@ -6,7 +6,7 @@ A cross-platform app (Android/iOS via Kotlin Multiplatform) to simplify grocery 
 
 ### Prerequisites
 
-- **Docker Desktop**: Free, required for LocalStack, Kafka, and Keycloak.
+- **Docker Desktop**: Free, required for LocalStack, Kafka, Keycloak, and Mailpit.
 - **Python 3.12+**: For virtual environment to install `awscli-local`. Install via Homebrew: `brew install python@3.12`.
 - **IntelliJ IDEA**: Community Edition or All Products Pack for KMP development.
 - **Git**: For version control.
@@ -168,14 +168,14 @@ docker-compose down
   ```
 ## Kafka Setup
 
-Kafka is used for real-time list sharing (HMB-18), enabling updates (e.g., adding "milk" to a shared list) to be pushed to multiple clients with low latency. Zookeeper coordinates Kafka’s brokers, topics, and consumer groups, ensuring reliable delivery.
+Kafka is used for real-time list sharing, enabling updates (e.g., adding "milk" to a shared list) to be pushed to multiple clients with low latency. Zookeeper coordinates Kafka’s brokers, topics, and consumer groups, ensuring reliable delivery.
 
 **Services Provisioned**:
 - Kafka broker: `helpmebuy-kafka` (port 9092) with topic `list-updates`.
 - Zookeeper: `helpmebuy-zookeeper` (port 2181) for coordination.
 
 **Prerequisites**:
-- Docker Desktop (free, installed for HMB-1).
+- Docker Desktop.
 
 **Start Kafka and Zookeeper**:
 1. Ensure `docker-compose.yml` is in project root (includes `kafka` and `zookeeper` services).
@@ -246,6 +246,27 @@ Kafka is used for real-time list sharing (HMB-18), enabling updates (e.g., addin
 ```bash
 docker-compose down
 ```
+## Local Authentication and Email (Keycloak and Mailpit)
+
+Keycloak manages authentication and user setup, with Mailpit handling email testing, both running via Docker Desktop with zero cost.
+
+**Keycloak**:
+- **Configuration**:
+    - Access admin console at [http://localhost:8081](http://localhost:8081), log in with `admin`/`admin` (master realm).
+    - Switch to `HelpMeBuyRealm` via realm selector, create new realm if not present.
+    - Add client: Go to Clients > Create, set Client ID `HelpMeBuyApp`, type OpenID Connect, enable confidential and service account, save, note Client Secret.
+    - Enable settings: In Realm settings > Login, turn on "User registration", "Email as username", "Verify Email".
+    - Set email: In Email tab, configure Host `mailpit`, Port `1025`, From `no-reply@helpmebuy.local`, SSL OFF, test connection (requires admin email `admin@helpmebuy.local` set in master realm > Users > `admin`).
+- **Verification**:
+    - Test SMTP by sending a test email from Email tab, confirm receipt in Mailpit.
+    - Request token: Use POST `http://localhost:8081/realms/HelpMeBuyRealm/protocol/openid-connect/token` with `client_id=HelpMeBuyApp`, `client_secret=<your-secret>`, `grant_type=client_credentials` to get a JWT.
+- **Notes**: Email verification for users (e.g., `test@helpmebuy.local`) awaits app registration form, deferred to future tasks.
+
+**Mailpit**:
+- **Configuration**: Access UI at [http://localhost:8025](http://localhost:8025) to confirm setup after starting Docker Desktop.
+- **Verification**: Check for test emails from Keycloak SMTP test.
+- **Notes**: Email data persists, verification testing deferred to app integration.
+
 
 ## Development Workflow
 - **IDE**: IntelliJ IDEA (Community or All Products Pack).
