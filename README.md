@@ -295,6 +295,21 @@ Keycloak manages authentication and user setup, with Mailpit handling email test
 - **Notes**: Email data persists, verification testing deferred to app integration.
 
 
+## Protected API with Keycloak (Ktor)
+- Start Keycloak and Mailpit as per earlier steps (docker-compose up -d). Ensure Keycloak is on http://localhost:8081 and realm HelpMeBuyRealm with client HelpMeBuyApp.
+- Run the Ktor server (server module) so it listens on port 8080.
+- Obtain an access token from Keycloak (password grant for the test user):
+  curl --location 'http://localhost:8081/realms/HelpMeBuyRealm/protocol/openid-connect/token' \
+  --header 'Content-Type: application/x-www-form-urlencoded' \
+  --data-urlencode 'client_id=HelpMeBuyApp' \
+  --data-urlencode 'grant_type=password' \
+  --data-urlencode 'username=test@helpmebuy.local' \
+  --data-urlencode 'password=testpass'
+- Call the protected endpoint using the access_token returned above:
+  curl --location 'http://localhost:8080/api/protected' \
+  --header "Authorization: Bearer <access_token>"
+- Expected: 200 with JSON including sub, groups, roles from the token. 401 if token missing/invalid.
+
 ## Development Workflow
 - **IDE**: IntelliJ IDEA (Community or All Products Pack).
 - **Version Control**: GitHub repo with GitHub Actions for CI/CD.

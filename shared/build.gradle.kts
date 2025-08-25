@@ -26,6 +26,10 @@ kotlin {
         commonMain.dependencies {
             // put your Multiplatform dependencies here
             implementation(libs.ktor.clientCore)
+            implementation(libs.ktor.clientAuth)
+            implementation(libs.kotlinx.serialization.json)
+            implementation(libs.ktor.clientCio)
+            implementation(libs.kotlin.logging)
         }
         androidMain.dependencies {
             implementation(libs.androidx.room.runtime)
@@ -33,6 +37,15 @@ kotlin {
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
+            implementation(libs.kotlinx.coroutines.test)
+            implementation(libs.ktor.clientCio)
+            implementation(libs.kotlin.logging)
+        }
+        jvmMain.dependencies {
+            implementation(libs.logback) // Backend for JVM logging
+        }
+        jvmTest.dependencies {
+            implementation(libs.logback) // Backend for JVM tests
         }
     }
 }
