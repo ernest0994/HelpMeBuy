@@ -310,6 +310,37 @@ Keycloak manages authentication and user setup, with Mailpit handling email test
   --header "Authorization: Bearer <access_token>"
 - Expected: 200 with JSON including sub, groups, roles from the token. 401 if token missing/invalid.
 
+## Offline Sync (Android Room <-> DynamoDB)
+Android uses Room for offline storage. To keep data in sync with DynamoDB for offline support, use AndroidSyncingListRepository which writes to Room first and then mirrors changes to DynamoDB when network is available.
+
+Wiring example (Android):
+
+```kotlin
+// Create Room DB
+val db = Room.databaseBuilder(context, AppDatabase::class.java, "hmb.db").build()
+
+// Provide a remote repo that talks to DynamoDB (platform-specific). For JVM/Android you can
+// implement a Dynamo-backed ListRepository (see shared/src/jvmMain/.../DynamoDbListRepository.kt
+// as reference) and pass it here.
+val remote: ListRepository = com.helpmebuyapp.helpmebuy.repository.DynamoDbListRepository()
+
+// Create syncing repository
+val repo = AndroidSyncingListRepository(db = db, dynamo = remote, scope = CoroutineScope(SupervisorJob() + Dispatchers.IO))
+
+// Use it normally (these write to Room immediately and attempt remote propagation in background):
+repo.insert(GroceryList(name = "Weekly Groceries", category = "Food", items = listOf("Milk" to 1)))
+// ...
+repo.update(repo.getById(1).first()!!)
+repo.delete(GroceryList(id = 1, name = "Weekly Groceries", category = "Food", items = listOf("Milk" to 1)))
+
+// Trigger a full sync (push local, then pull remote):
+repo.sync()
+```
+
+Notes:
+- Conflict resolution is minimal: during pull, "server wins" is applied. If you need robust conflict resolution, extend your entities with updatedAt timestamps and implement last-write-wins or merge strategies.
+- If remote propagation fails (offline), operations remain in Room and a later repo.sync() will retry.
+
 ## Development Workflow
 - **IDE**: IntelliJ IDEA (Community or All Products Pack).
 - **Version Control**: GitHub repo with GitHub Actions for CI/CD.
