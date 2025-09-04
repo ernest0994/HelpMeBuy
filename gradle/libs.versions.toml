@@ -21,6 +21,7 @@ kotlinx-serialization = "1.9.0"
 kotlinx-coroutines = "1.10.2"
 kotlin-logging = "7.0.13"
 aws-sdk-v2 = "2.32.29"
+aws-sdk-kotlin = "1.5.31"
 
 [libraries]
 java-jwt = { module = "com.auth0:java-jwt", version.ref = "javaJwt" }
@@ -52,6 +53,7 @@ kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serializa
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }
 kotlin-logging = { module = "io.github.oshai:kotlin-logging", version.ref = "kotlin-logging" }
 aws-dynamodb = { module = "software.amazon.awssdk:dynamodb", version.ref = "aws-sdk-v2" }
+aws-kotlin-dynamodb = { module = "aws.sdk.kotlin:dynamodb", version.ref = "aws-sdk-kotlin" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

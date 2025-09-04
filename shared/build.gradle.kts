@@ -50,7 +50,7 @@ kotlin {
         }
         jvmMain.dependencies {
             implementation(libs.logback) // Backend for JVM logging
-            implementation(libs.aws.dynamodb)
+            implementation(libs.aws.kotlin.dynamodb)
         }
         jvmTest.dependencies {
             implementation(libs.logback) // Backend for JVM tests

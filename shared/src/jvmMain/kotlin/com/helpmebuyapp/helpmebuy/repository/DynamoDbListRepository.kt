@@ -9,12 +9,13 @@ import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.PairSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.Json
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider
-import software.amazon.awssdk.regions.Region
-import software.amazon.awssdk.services.dynamodb.DynamoDbClient
-import software.amazon.awssdk.services.dynamodb.model.*
-import java.net.URI
+import aws.sdk.kotlin.services.dynamodb.DynamoDbClient
+import aws.sdk.kotlin.services.dynamodb.model.AttributeValue
+import aws.sdk.kotlin.services.dynamodb.model.DeleteItemRequest
+import aws.sdk.kotlin.services.dynamodb.model.GetItemRequest
+import aws.sdk.kotlin.services.dynamodb.model.PutItemRequest
+import aws.sdk.kotlin.services.dynamodb.model.ScanRequest
+import aws.smithy.kotlin.runtime.net.url.Url
 
 /**
  * JVM implementation backed by DynamoDB (LocalStack by default).
@@ -22,8 +23,8 @@ import java.net.URI
  */
 class DynamoDbListRepository(
     private val tableName: String = System.getenv("HMB_DDB_TABLE") ?: "Lists",
-    endpoint: String = System.getenv("AWS_ENDPOINT") ?: "http://localhost:4566",
-    region: String = System.getenv("AWS_DEFAULT_REGION") ?: "us-east-1"
+    private val endpoint: String = System.getenv("AWS_ENDPOINT") ?: "http://localhost:4566",
+    private val region: String = System.getenv("AWS_DEFAULT_REGION") ?: "us-east-1"
 ) : ListRepository {
 
     // Concrete data class that also keeps items; interface exposes minimal fields
@@ -37,28 +38,23 @@ class DynamoDbListRepository(
     private val json = Json
     private val itemsSerializer = ListSerializer(PairSerializer(String.serializer(), Int.serializer()))
 
-    private val client: DynamoDbClient = DynamoDbClient.builder()
-        .endpointOverride(URI.create(endpoint))
-        .region(Region.of(region))
-        // LocalStack accepts any credentials; provide static placeholders
-        .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("test", "test")))
-        .build()
+    private val client: DynamoDbClient = DynamoDbClient {
+        region = this@DynamoDbListRepository.region
+        endpointUrl = Url.parse(endpoint)
+    }
 
     override suspend fun insert(list: ListEntity): Unit = withContext(Dispatchers.IO) {
         val ddb = toDdbList(list)
-        val request = PutItemRequest.builder()
-            .tableName(tableName)
-            .item(
-                mapOf(
-                    "id" to AttributeValue.builder().n(ddb.id.toString()).build(),
-                    "name" to AttributeValue.builder().s(ddb.name).build(),
-                    "category" to AttributeValue.builder().s(ddb.category).build(),
-                    // store items as JSON string; optional
-                    "itemsJson" to AttributeValue.builder().s(json.encodeToString(itemsSerializer, ddb.items)).build()
-                )
+        val req = PutItemRequest {
+            this.tableName = tableName
+            this.item = mapOf(
+                "id" to AttributeValue.N(ddb.id.toString()),
+                "name" to AttributeValue.S(ddb.name),
+                "category" to AttributeValue.S(ddb.category),
+                "itemsJson" to AttributeValue.S(json.encodeToString(itemsSerializer, ddb.items))
             )
-            .build()
-        client.putItem(request)
+        }
+        client.putItem(req)
         Unit
     }
 
@@ -69,30 +65,29 @@ class DynamoDbListRepository(
     }
 
     override suspend fun delete(list: ListEntity): Unit = withContext(Dispatchers.IO) {
-        val key = mapOf("id" to AttributeValue.builder().n(list.id.toString()).build())
-        val request = DeleteItemRequest.builder()
-            .tableName(tableName)
-            .key(key)
-            .build()
-        client.deleteItem(request)
+        val req = DeleteItemRequest {
+            this.tableName = tableName
+            this.key = mapOf("id" to AttributeValue.N(list.id.toString()))
+        }
+        client.deleteItem(req)
         Unit
     }
 
     override fun getById(id: Int): Flow<ListEntity?> = flow {
-        val key = mapOf("id" to AttributeValue.builder().n(id.toString()).build())
-        val req = GetItemRequest.builder()
-            .tableName(tableName)
-            .key(key)
-            .build()
-        val resp = withContext(Dispatchers.IO) { client.getItem(req) }
-        val item = resp.item()
+        val resp = withContext(Dispatchers.IO) {
+            val req = GetItemRequest {
+                this.tableName = tableName
+                this.key = mapOf("id" to AttributeValue.N(id.toString()))
+            }
+            client.getItem(req)
+        }
+        val item = resp.item
         emit(if (item == null || item.isEmpty()) null else fromItem(item))
     }
 
     override fun getAll(): Flow<List<ListEntity>> = flow {
-        val scanReq = ScanRequest.builder().tableName(tableName).build()
-        val resp = withContext(Dispatchers.IO) { client.scan(scanReq) }
-        val lists = resp.items().map { fromItem(it) }
+        val resp = withContext(Dispatchers.IO) { client.scan(ScanRequest { this.tableName = tableName }) }
+        val lists = resp.items?.map { fromItem(it) } ?: emptyList()
         emit(lists)
     }
 
@@ -110,10 +105,10 @@ class DynamoDbListRepository(
     }
 
     private fun fromItem(item: Map<String, AttributeValue>): DdbList {
-        val id = item["id"]?.n()?.toInt() ?: 0
-        val name = item["name"]?.s() ?: ""
-        val category = item["category"]?.s() ?: ""
-        val itemsJson = item["itemsJson"]?.s() ?: "[]"
+        val id = (item["id"] as? AttributeValue.N)?.value?.toInt() ?: 0
+        val name = (item["name"] as? AttributeValue.S)?.value ?: ""
+        val category = (item["category"] as? AttributeValue.S)?.value ?: ""
+        val itemsJson = (item["itemsJson"] as? AttributeValue.S)?.value ?: "[]"
         val items = runCatching { json.decodeFromString(itemsSerializer, itemsJson) }.getOrElse { emptyList() }
         return DdbList(id = id, name = name, category = category, items = items)
     }
