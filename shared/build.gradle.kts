@@ -6,8 +6,16 @@ plugins {
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
-    alias(libs.plugins.ktor)
+    // Ktor Gradle plugin is intended for server apps and is not compatible with KMP library modules.
+    // Removed to avoid the warning: "The Ktor Gradle plugin is not fully compatible with the Kotlin Multiplatform plugin." 
     alias(libs.plugins.ksp)
+}
+
+// Work around KLIB resolver duplicate unique_name warnings on iOS metadata
+// Exclude Compose internal commonMain klibs that duplicate AndroidX commonMain modules
+configurations.all {
+    exclude(group = "org.jetbrains.compose", module = "annotation-internal-annotation")
+    exclude(group = "org.jetbrains.compose", module = "collection-internal-collection")
 }
 
 kotlin {
