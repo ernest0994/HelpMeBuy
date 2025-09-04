@@ -4,6 +4,8 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidLibrary)
+    alias(libs.plugins.composeMultiplatform)
+    alias(libs.plugins.composeCompiler)
     alias(libs.plugins.ktor)
     alias(libs.plugins.ksp)
 }
@@ -30,6 +32,10 @@ kotlin {
             implementation(libs.kotlinx.serialization.json)
             implementation(libs.ktor.clientCio)
             implementation(libs.kotlin.logging)
+            // Compose Multiplatform UI
+            implementation(compose.runtime)
+            implementation(compose.foundation)
+            implementation(compose.material3)
         }
         androidMain.dependencies {
             implementation(libs.androidx.room.runtime)
