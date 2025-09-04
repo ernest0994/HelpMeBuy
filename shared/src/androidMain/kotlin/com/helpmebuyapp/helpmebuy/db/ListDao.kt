@@ -22,5 +22,5 @@ interface ListDao {
     fun getById(id: Int): Flow<GroceryList?>
 
     @Query("SELECT * FROM lists")
-    fun getAll(): Flow<kotlin.collections.List<GroceryList>>
+    fun getAll(): Flow<List<GroceryList>>
 }

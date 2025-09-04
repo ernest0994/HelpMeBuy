@@ -92,7 +92,8 @@ class AndroidSyncingListRepository(
     }
 
     private fun tryPropagate(block: suspend () -> Unit) {
-        // If a scope is provided, do it in background; else run blocking on IO
-        scope?.launch(Dispatchers.IO) { runCatching { block() } } ?: runCatching { kotlinx.coroutines.runBlocking(Dispatchers.IO) { block() } }
+        // If a scope is provided, use it; otherwise, launch a lightweight IO scope.
+        val s = scope ?: CoroutineScope(Dispatchers.IO)
+        s.launch { runCatching { block() } }
     }
 }

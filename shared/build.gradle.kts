@@ -22,6 +22,14 @@ kotlin {
     iosArm64()
     iosSimulatorArm64()
 
+    // Set bundle ID to avoid warnings for iOS frameworks
+    targets.withType(org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget::class.java).configureEach {
+        binaries.withType(org.jetbrains.kotlin.gradle.plugin.mpp.Framework::class.java).configureEach {
+            baseName = "Shared"
+            binaryOptions["bundleId"] = "com.helpmebuyapp.helpmebuy.shared"
+        }
+    }
+
     jvm()
 
     sourceSets {

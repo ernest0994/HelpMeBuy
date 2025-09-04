@@ -11,6 +11,6 @@ interface ListRepository {
     suspend fun update(list: ListEntity)
     suspend fun delete(list: ListEntity)
     fun getById(id: Int): Flow<ListEntity?>
-    fun getAll(): Flow<kotlin.collections.List<ListEntity>>
-    fun getAutoSuggestions(query: String): kotlin.collections.List<String>
+    fun getAll(): Flow<List<ListEntity>>
+    fun getAutoSuggestions(query: String): List<String>
 }

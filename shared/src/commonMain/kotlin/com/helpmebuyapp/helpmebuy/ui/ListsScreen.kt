@@ -72,7 +72,7 @@ fun ListsScreen(
                     }
                 }
 
-                Divider()
+                HorizontalDivider()
 
                 Text("All Lists", style = MaterialTheme.typography.titleMedium)
                 LazyColumn(modifier = Modifier.fillMaxSize()) {

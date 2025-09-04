@@ -14,18 +14,18 @@ data class GroceryList(
     @PrimaryKey(autoGenerate = true) override val id: Int = 0,
     override val name: String,
     override val category: String,
-    val items: kotlin.collections.List<kotlin.Pair<String, Int>>
+    val items: List<Pair<String, Int>>
 ) : ListEntity
 
 class ItemsConverter {
     @TypeConverter
-    fun fromItems(items: kotlin.collections.List<kotlin.Pair<String, Int>>): String {
+    fun fromItems(items: List<Pair<String, Int>>): String {
         val serializer = ListSerializer(PairSerializer(String.serializer(), Int.serializer()))
         return Json.encodeToString(serializer, items)
     }
 
     @TypeConverter
-    fun toItems(itemsString: String): kotlin.collections.List<kotlin.Pair<String, Int>> {
+    fun toItems(itemsString: String): List<Pair<String, Int>> {
         val serializer = ListSerializer(PairSerializer(String.serializer(), Int.serializer()))
         return Json.decodeFromString(serializer, itemsString)
     }

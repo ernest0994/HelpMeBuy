@@ -26,9 +26,9 @@ class AndroidListRepository(private val db: AppDatabase) : ListRepository {
 
     override fun getById(id: Int): Flow<ListEntity?> = dao.getById(id).map { it as ListEntity? }
 
-    override fun getAll(): Flow<kotlin.collections.List<ListEntity>> = dao.getAll().map { it as kotlin.collections.List<ListEntity> }
+    override fun getAll(): Flow<List<ListEntity>> = dao.getAll().map { it as List<ListEntity> }
 
-    override fun getAutoSuggestions(query: String): kotlin.collections.List<String> {
+    override fun getAutoSuggestions(query: String): List<String> {
         val commonItems = listOf("Milk", "Eggs", "Bread", "Apples", "Chicken")
         return commonItems.filter { it.lowercase().contains(query.lowercase()) }
     }
