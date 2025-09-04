@@ -20,6 +20,7 @@ logback = "1.5.18"
 kotlinx-serialization = "1.9.0"
 kotlinx-coroutines = "1.10.2"
 kotlin-logging = "7.0.13"
+aws-sdk-v2 = "2.32.29"
 
 [libraries]
 java-jwt = { module = "com.auth0:java-jwt", version.ref = "javaJwt" }
@@ -29,6 +30,7 @@ kotlin-testJunit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.
 junit = { module = "junit:junit", version.ref = "junit" }
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidx-core" }
 androidx-testExt-junit = { module = "androidx.test.ext:junit", version.ref = "androidx-testExt" }
+androidx-test-core = { module = "androidx.test:core", version = "1.6.1" }
 androidx-espresso-core = { module = "androidx.test.espresso:espresso-core", version.ref = "androidx-espresso" }
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "androidx-appcompat" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activity" }
@@ -49,6 +51,7 @@ ktor-clientCio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }
 kotlin-logging = { module = "io.github.oshai:kotlin-logging", version.ref = "kotlin-logging" }
+aws-dynamodb = { module = "software.amazon.awssdk:dynamodb", version.ref = "aws-sdk-v2" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

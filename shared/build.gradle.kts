@@ -35,6 +35,13 @@ kotlin {
             implementation(libs.androidx.room.runtime)
             implementation(libs.androidx.room.ktx)
         }
+        androidInstrumentedTest.dependencies {
+            implementation(libs.androidx.testExt.junit)
+            implementation(libs.androidx.test.core)
+            implementation(libs.kotlinx.coroutines.test)
+            implementation(libs.kotlin.test)
+            implementation(libs.junit)
+        }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
             implementation(libs.kotlinx.coroutines.test)
@@ -43,6 +50,7 @@ kotlin {
         }
         jvmMain.dependencies {
             implementation(libs.logback) // Backend for JVM logging
+            implementation(libs.aws.dynamodb)
         }
         jvmTest.dependencies {
             implementation(libs.logback) // Backend for JVM tests
@@ -59,6 +67,7 @@ android {
     }
     defaultConfig {
         minSdk = libs.versions.android.minSdk.get().toInt()
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 }
 
