@@ -11,14 +11,13 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
-// Work around KLIB resolver duplicate unique_name warnings on iOS metadata
-// Exclude Compose internal commonMain klibs that duplicate AndroidX commonMain modules
-configurations.all {
-    exclude(group = "org.jetbrains.compose", module = "annotation-internal-annotation")
-    exclude(group = "org.jetbrains.compose", module = "collection-internal-collection")
-}
+// Note: Avoid excluding Compose internal klibs globally; they are required for iOS text input implementation.
+// Previous excludes caused missing declarations during iOS framework linking.
 
 kotlin {
+    // Enforce consistent Compose artifacts across source sets to avoid duplicate commonMain KLIBs
+    applyDefaultHierarchyTemplate()
+
     androidTarget {
         @OptIn(ExperimentalKotlinGradlePluginApi::class)
         compilerOptions {
@@ -51,6 +50,7 @@ kotlin {
             // Compose Multiplatform UI
             implementation(compose.runtime)
             implementation(compose.foundation)
+            implementation(compose.ui)
             implementation(compose.material3)
         }
         androidMain.dependencies {
