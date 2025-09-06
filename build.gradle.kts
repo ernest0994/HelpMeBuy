@@ -18,6 +18,9 @@ subprojects {
             force("org.jetbrains.compose.foundation:foundation:${libs.versions.composeMultiplatform.get()}")
             force("org.jetbrains.compose.ui:ui:${libs.versions.composeMultiplatform.get()}")
             force("org.jetbrains.compose.material3:material3:${libs.versions.composeMultiplatform.get()}")
+            // Internal annotation/collection modules are published under these coordinates
+            force("org.jetbrains.compose.annotation-internal:annotation:${libs.versions.composeMultiplatform.get()}")
+            force("org.jetbrains.compose.collection-internal:collection:${libs.versions.composeMultiplatform.get()}")
         }
     }
 }
